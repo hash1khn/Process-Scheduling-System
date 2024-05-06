@@ -15,7 +15,6 @@ struct PrioritizedPCB {
     int completion_time;
     int turnaround_time;
     int waiting_time;
-    int remaining_cpu_time;
     char state[20];
     struct PrioritizedPCB *next;
 };
@@ -27,7 +26,6 @@ struct PCB {
     int completion_time;
     int turnaround_time;
     int waiting_time;
-    int remaining_cpu_time;
     char state[20];
     struct PCB *next;
 };
@@ -89,8 +87,6 @@ void execute_process(struct PCB *process) {
     pthread_mutex_unlock(&ready_queue_mutex);
 }
 
-
-
 void* scheduler(void *args) {
     while (1) {
         if (!ready_queue) {
@@ -123,7 +119,6 @@ void FCFS() {
         double elapsed_time = difftime(current_time, start_time);
 
         new_process->arrival_time = elapsed_time; // Random arrival time between 0 and 9
-        new_process->remaining_cpu_time = new_process->burst_time;
         strcpy(new_process->state, "Ready");
         new_process->next = NULL;
         add_process(new_process);
@@ -169,7 +164,6 @@ void SJF() {
         double elapsed_time = difftime(current_time, start_time);
 
         new_process->arrival_time = elapsed_time; // Random arrival time between 0 and 9
-        new_process->remaining_cpu_time = new_process->burst_time;
         strcpy(new_process->state, "Ready");
         new_process->next = NULL;
         
@@ -203,7 +197,6 @@ void priorityPreemptive() {
         new_process->burst_time = 1 + rand() % 5; // Random burst time between 1 and 5
         new_process->arrival_time = i; // Random arrival time between 0 and 9
         new_process->priority = rand() % 10; // Random priority between 0 and 9
-        new_process->remaining_cpu_time = new_process->burst_time;
         strcpy(new_process->state, "Ready");
         new_process->next = NULL;
         
