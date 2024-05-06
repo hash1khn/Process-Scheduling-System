@@ -3,18 +3,12 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
-#include <time.h>
-
-time_t start_time;
 
 struct PrioritizedPCB {
     int pid;
     int burst_time;
     int arrival_time;
     int priority;
-    int completion_time;
-    int turnaround_time;
-    int waiting_time;
     int remaining_cpu_time;
     char state[20];
     struct PrioritizedPCB *next;
@@ -24,16 +18,12 @@ struct PCB {
     int pid;
     int burst_time;
     int arrival_time;
-    int completion_time;
-    int turnaround_time;
-    int waiting_time;
     int remaining_cpu_time;
     char state[20];
     struct PCB *next;
 };
 
 struct PCB *ready_queue = NULL;
-struct PCB *completed_processes = NULL;
 pthread_mutex_t ready_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void add_process(struct PCB *new_process) {
@@ -64,42 +54,21 @@ struct PCB *select_next_process() {
 }
 
 void execute_process(struct PCB *process) {
-    
-    time_t current_time = time(NULL);
-    double elapsed_time = difftime(current_time, start_time);
-
-    printf("\n - Current Time: %.0f seconds since start\n\n", elapsed_time);
     printf("Executing process with PID %d, Burst Time: %d\n", process->pid, process->burst_time);
-
-
     sleep(process->burst_time);
     printf("Process with PID %d finished execution.\n", process->pid);
 
     strcpy(process->state, "Terminated");
-    time_t end_time = time(NULL);
-
-    process->completion_time = difftime(end_time, start_time);
-    process->turnaround_time = process->completion_time - process->arrival_time;
-    process->waiting_time = process->turnaround_time - process->burst_time;
-
-    // Instead of freeing the PCB, we add it to the completed list
-    pthread_mutex_lock(&ready_queue_mutex);
-    process->next = completed_processes;
-    completed_processes = process;
-    pthread_mutex_unlock(&ready_queue_mutex);
+    free(process); // Free memory allocated to the PCB
 }
-
 
 
 void* scheduler(void *args) {
     while (1) {
         if (!ready_queue) {
-            time_t current_time = time(NULL);
-            double elapsed_time = difftime(current_time, start_time);
-
-            printf("\n - Current Time: %.0f seconds since start\n\n", elapsed_time);
             printf("No processes in the ready queue.\n");
-            break;
+            sleep(1);
+            continue;
         }
         struct PCB *next_process = select_next_process();
         if (next_process != NULL) {
@@ -127,29 +96,6 @@ void FCFS() {
 
     pthread_join(scheduler_thread, NULL);
 }
-
-void display_statistics() {
-    struct PCB *current = completed_processes;
-    double total_tat = 0, total_wt = 0;
-    int count = 0;
-
-    printf("\nProcess Execution Statistics:\n");
-    printf("PID\tCompletion Time\tTurnaround Time\tWaiting Time\n");
-
-    while (current != NULL) {
-        printf("%d\t%d\t\t%d\t\t%d\n", current->pid, current->completion_time, current->turnaround_time, current->waiting_time);
-        total_tat += current->turnaround_time;
-        total_wt += current->waiting_time;
-        count++;
-        current = current->next;
-    }
-
-    if (count > 0) {
-        printf("\nAverage Turnaround Time: %.2f\n", total_tat / count);
-        printf("Average Waiting Time: %.2f\n", total_wt / count);
-    }
-}
-
 
 void SJF() {
     pthread_t scheduler_thread;
@@ -220,14 +166,8 @@ void priorityPreemptive() {
 
 
 int main() {
-    start_time = time(NULL);
-
     // FCFS();
-    // Uncomment as needed:
-    SJF();
-    // priorityPreemptive();
-
-    // Display statistics after all processes have finished executing
-    display_statistics();
+    // SJF();
+    priorityPreemptive();
     return 0;
 }
