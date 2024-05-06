@@ -160,7 +160,11 @@ void SJF() {
         struct PCB *new_process = (struct PCB*)malloc(sizeof(struct PCB));
         new_process->pid = i;
         new_process->burst_time = 1 + rand() % 5; // Random burst time between 1 and 5
-        new_process->arrival_time = i; // Random arrival time between 0 and 9
+
+        time_t current_time = time(NULL);
+        double elapsed_time = difftime(current_time, start_time);
+
+        new_process->arrival_time = elapsed_time; // Random arrival time between 0 and 9
         new_process->remaining_cpu_time = new_process->burst_time;
         strcpy(new_process->state, "Ready");
         new_process->next = NULL;
@@ -226,6 +230,7 @@ int main() {
     // Uncomment as needed:
     SJF();
     // priorityPreemptive();
+
 
     // Display statistics after all processes have finished executing
     display_statistics();
