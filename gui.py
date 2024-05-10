@@ -1,13 +1,19 @@
 import subprocess
 import tkinter as tk
 from tkinter import scrolledtext
+import os
 
 def run_c_program():
     # Determine which scheduling algorithm was selected
     algorithm = algorithm_var.get()
 
-    # Run the C executable with the chosen algorithm
-    process = subprocess.Popen(['./main', algorithm], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if os.name == 'nt':  # Windows
+        cmd = ['main.exe', algorithm]
+    else:  # Unix-like
+        cmd = ['./main', algorithm]
+
+# Run the C executable with the chosen algorithm
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     
     # Clear previous output
     output_display.delete('1.0', tk.END)
