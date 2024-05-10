@@ -243,17 +243,34 @@ void priorityPreemptive() {
     pthread_join(scheduler_thread, NULL);
 }
 
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Please specify a scheduling algorithm.\n");
+        return 1;
+    }
 
-int main() {
-    start_time = time(NULL);
+    if (strcmp(argv[1], "fcfs") == 0) {
+        start_time = time(NULL);
+        printf("Running FCFS algorithm...\n");
 
-    // FCFS();
-    // Uncomment as needed:
-    // SJF();
-    priorityPreemptive();
+        FCFS();
+        // Call the First-Come, First-Served scheduling function
 
+    } else if (strcmp(argv[1], "sjf") == 0) {
+        // Call the Shortest Job First scheduling function
+        start_time = time(NULL);
+        printf("Running SJF algorithm...\n");
+        SJF();
+    } else if (strcmp(argv[1], "pp") == 0) {
+        // Call the Round-Robin scheduling function
+        start_time = time(NULL);
+        printf("Running PP algorithm...\n");
+
+        priorityPreemptive();
+    } else {
+        printf("Invalid algorithm specified.\n");
+        return 1;
+    }
     
-    // Display statistics after all processes have finished executing
-    display_statistics();
     return 0;
 }
