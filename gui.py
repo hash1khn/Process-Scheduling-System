@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
+import time
 
 def parse_output(output):
     data = []
@@ -58,13 +59,20 @@ def run_c_program():
     else:  # Unix-like
         cmd = ['./main', algorithm]
 
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+
     output_display.delete('1.0', tk.END)
-    full_output = ''
-    for line in iter(process.stdout.readline, ''):
+    full_output = ""
+
+    # Reading the output line by line in real-time
+    while True:
+        line = process.stdout.readline()
+        if not line:
+            break
         output_display.insert(tk.END, line)
+        output_display.update()  # Update the widget
         full_output += line
+        time.sleep(0.5)  # Add a small delay to simulate real-time update
 
     data = parse_output(full_output)
     plot_gantt_chart(data)
