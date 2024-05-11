@@ -148,15 +148,15 @@ void display_statistics() {
 }
 
 
-void FCFS() {
+void FCFS(int numberOfProcesses, int maxBurstTime) {
     pthread_t scheduler_thread;
     pthread_create(&scheduler_thread, NULL, scheduler, NULL);
 
     // Simulate processes (creating PCBs and adding them to the ready queue)
-    for (int i = 1; i <= 5; ++i) {
+    for (int i = 1; i <= numberOfProcesses; ++i) {
         struct PCB *new_process = (struct PCB*)malloc(sizeof(struct PCB));
         new_process->pid = i;
-        new_process->burst_time = 1 + rand() % 5; // Random burst time between 1 and 5
+        new_process->burst_time = 1 + rand() % maxBurstTime; // Random burst time between 1 and 5
 
         time_t current_time = time(NULL);
         double elapsed_time = difftime(current_time, start_time);
@@ -170,15 +170,15 @@ void FCFS() {
     pthread_join(scheduler_thread, NULL);
 }
 
-void SJF() {
+void SJF(int numberOfProcesses, int maxBurstTime) {
     pthread_t scheduler_thread;
     pthread_create(&scheduler_thread, NULL, scheduler, NULL);
 
     // Simulate processes (creating PCBs and adding them to the ready queue)
-    for (int i = 1; i <= 5; ++i) {
+    for (int i = 1; i <= numberOfProcesses; ++i) {
         struct PCB *new_process = (struct PCB*)malloc(sizeof(struct PCB));
         new_process->pid = i;
-        new_process->burst_time = 1 + rand() % 5; // Random burst time between 1 and 5
+        new_process->burst_time = 1 + rand() % maxBurstTime; // Random burst time between 1 and 5
 
         time_t current_time = time(NULL);
         double elapsed_time = difftime(current_time, start_time);
@@ -206,15 +206,15 @@ void SJF() {
     pthread_join(scheduler_thread, NULL);
 }
 
-void priorityPreemptive() {
+void priorityPreemptive(int numberOfProcesses, int maxBurstTime) {
     pthread_t scheduler_thread;
     pthread_create(&scheduler_thread, NULL, scheduler, NULL);
 
     // Simulate processes (creating PCBs and adding them to the ready queue)
-    for (int i = 1; i <= 5; ++i) {
+    for (int i = 1; i <= numberOfProcesses; ++i) {
         struct PrioritizedPCB *new_process = (struct PrioritizedPCB*)malloc(sizeof(struct PrioritizedPCB));
         new_process->pid = i;
-        new_process->burst_time = 1 + rand() % 5; // Random burst time between 1 and 5
+        new_process->burst_time = 1 + rand() % maxBurstTime; // Random burst time between 1 and 5
 
         time_t current_time = time(NULL);
         double elapsed_time = difftime(current_time, start_time);
@@ -244,33 +244,31 @@ void priorityPreemptive() {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Please specify a scheduling algorithm.\n");
+    if (argc < 4) {
+        printf("Usage: %s <algorithm> <number_of_processes> <max_burst_time>\n", argv[0]);
         return 1;
     }
 
-    if (strcmp(argv[1], "fcfs") == 0) {
-        start_time = time(NULL);
-        printf("Running FCFS algorithm...\n");
+    char *algorithm = argv[1];
+    int numberOfProcesses = atoi(argv[2]);
+    int maxBurstTime = atoi(argv[3]);
 
-        FCFS();
-        // Call the First-Come, First-Served scheduling function
+    start_time = time(NULL);
 
-    } else if (strcmp(argv[1], "sjf") == 0) {
-        // Call the Shortest Job First scheduling function
-        start_time = time(NULL);
-        printf("Running SJF algorithm...\n");
-        SJF();
-    } else if (strcmp(argv[1], "pp") == 0) {
-        // Call the Round-Robin scheduling function
-        start_time = time(NULL);
-        printf("Running PP algorithm...\n");
-
-        priorityPreemptive();
+    if (strcmp(algorithm, "fcfs") == 0) {
+        printf("Running FCFS algorithm with %d processes, max burst time: %d...\n", numberOfProcesses, maxBurstTime);
+        FCFS(numberOfProcesses, maxBurstTime);
+    } else if (strcmp(algorithm, "sjf") == 0) {
+        printf("Running SJF algorithm with %d processes, max burst time: %d...\n", numberOfProcesses, maxBurstTime);
+        SJF(numberOfProcesses, maxBurstTime);
+    } else if (strcmp(algorithm, "pp") == 0) {
+        printf("Running Priority Preemptive algorithm with %d processes, max burst time: %d...\n", numberOfProcesses, maxBurstTime);
+        priorityPreemptive(numberOfProcesses, maxBurstTime);
     } else {
         printf("Invalid algorithm specified.\n");
         return 1;
     }
-    
+
+    display_statistics();
     return 0;
 }
