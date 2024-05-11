@@ -2,6 +2,53 @@ import subprocess
 import tkinter as tk
 from tkinter import scrolledtext
 import os
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from datetime import datetime
+
+def parse_output(output):
+    data = []
+    lines = output.split("\n")
+    current_time = 0
+    for line in lines:
+        if "Current Time:" in line:
+            # Capture the current time from the output
+            parts = line.split()
+            current_time = float(parts[3])
+        if "Executing process with PID" in line:
+            # Parse the process details
+            parts = line.split(',')
+            pid = int(parts[0].split()[-1])
+            burst_time = int(parts[1].split()[-1])
+            # Append the data tuple for Gantt chart
+            data.append((pid, burst_time, current_time))
+    return data
+
+
+def plot_gantt_chart(data):
+    if not data:
+        print("No data to plot.")
+        return
+
+    fig, ax = plt.subplots()
+    yticks = []
+    yticklabels = []
+
+    for i, (pid, burst, start_time) in enumerate(data):
+        ax.broken_barh([(start_time, burst)], (i-0.4, 0.8), facecolors='tab:blue')
+        yticks.append(i)
+        yticklabels.append(f'PID {pid}')
+
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticklabels)
+    ax.set_xlabel('Time since start (seconds)')
+    ax.set_ylabel('Processes')
+    ax.set_title('Process Execution Gantt Chart')
+    ax.xaxis.set_major_locator(plt.MultipleLocator(1))  # Set major ticks to be at every integer
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{int(x):d}'))  # Format x-axis ticks as integers
+
+    plt.show()
+
 
 def run_c_program():
     algorithm = algorithm_var.get()
@@ -14,9 +61,13 @@ def run_c_program():
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     
     output_display.delete('1.0', tk.END)
-
+    full_output = ''
     for line in iter(process.stdout.readline, ''):
         output_display.insert(tk.END, line)
+        full_output += line
+
+    data = parse_output(full_output)
+    plot_gantt_chart(data)
 
     errors = process.stderr.read()
     if errors:
